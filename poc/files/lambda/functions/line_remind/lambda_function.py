@@ -33,7 +33,7 @@ def send_reminder(reminder):
     
     # LINEへのリマインダー送信
     res_message = [
-        {'type':'text','text':f"リマインド: {task}"}
+        {'type':'text','text':f"リマインド:\n{task}"}
     ]
     payload = {'to': user_id, 'messages': res_message}
     headers = {'content-type': 'application/json', 'Authorization': f'Bearer {channel_access_token}'}
