@@ -11,42 +11,63 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "lambda_line_main" {
-  name               = "${var.env}_${var.project}_lambda_line_main"
+  name               = "${var.env}-${var.project}-lambda-line-main"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
 resource "aws_iam_role" "lambda_line_remind" {
-  name               = "${var.env}_${var.project}_lambda_line_remind"
+  name               = "${var.env}-${var.project}-lambda-line-remind"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_execution" {
+data "aws_iam_policy_document" "lambda_basic" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.env}-${var.project}-*:*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "lambda_basic" {
+  name   = "${var.env}-${var.project}-lambda-basic"
+  policy = data.aws_iam_policy_document.lambda_basic.json
+}
+
+resource "aws_iam_policy_attachment" "lambda_basic" {
+  name = "${var.env}-${var.project}-lambda-basic"
   roles = [
     aws_iam_role.lambda_line_main.name,
     aws_iam_role.lambda_line_remind.name,
   ]
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = aws_iam_policy.lambda_basic.arn
 }
 
 data "aws_iam_policy_document" "lambda_dynamodb" {
   statement {
     effect    = "Allow"
     actions   = ["dynamodb:*"]
-    resources = ["arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.env}_${var.project}_*"]
+    resources = ["arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.env}-${var.project}-*"]
   }
 }
 
 resource "aws_iam_policy" "lambda_dynamodb" {
-  name   = "${var.env}_${var.project}_lambda_dynamodb"
+  name   = "${var.env}-${var.project}-lambda-dynamodb"
   policy = data.aws_iam_policy_document.lambda_dynamodb.json
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
+resource "aws_iam_policy_attachment" "lambda_dynamodb" {
+  name = "${var.env}-${var.project}-lambda-dynamodb"
   roles = [
     aws_iam_role.lambda_line_main.name,
     aws_iam_role.lambda_line_remind.name,
   ]
-  policy_arn = aws_iam_policy.lambda_line_main_dynamodb.arn
+  policy_arn = aws_iam_policy.lambda_dynamodb.arn
 }
 
 
@@ -63,7 +84,7 @@ data "aws_iam_policy_document" "api_gateway_assume_role" {
 }
 
 resource "aws_iam_role" "api_gateway_line_main" {
-  name               = "${var.env}_${var.project}_api_gateway_line_main"
+  name               = "${var.env}-${var.project}-api-gateway-line-main"
   assume_role_policy = data.aws_iam_policy_document.api_gateway_assume_role.json
 }
 
@@ -85,13 +106,13 @@ data "aws_iam_policy_document" "scheduler_assume_role" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
-      identifiers = ["scheduler.amazonaws.com"]
+      identifiers = ["events.amazonaws.com"]
     }
   }
 }
 
 resource "aws_iam_role" "scheduler_line_remind" {
-  name               = "${var.env}_${var.project}_lambda_scheduler"
+  name               = "${var.env}-${var.project}-lambda-scheduler"
   assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
 }
 
@@ -104,11 +125,12 @@ data "aws_iam_policy_document" "lambda_scheduler" {
 }
 
 resource "aws_iam_policy" "lambda_scheduler" {
-  name   = "${var.env}_${var.project}_lambda_scheduler"
+  name   = "${var.env}-${var.project}-lambda-scheduler"
   policy = data.aws_iam_policy_document.lambda_scheduler.json
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_scheduler" {
+resource "aws_iam_policy_attachment" "lambda_scheduler" {
+  name = "${var.env}-${var.project}-lambda-scheduler"
   roles = [
     aws_iam_role.scheduler_line_remind.name,
   ]

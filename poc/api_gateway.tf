@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "line_main" {
-  name = "${var.env}_${var.project}_line_main"
+  name = "${var.env}-${var.project}-line-main"
 
   body = jsonencode({
     openapi = "3.0.1"
@@ -9,13 +9,80 @@ resource "aws_api_gateway_rest_api" "line_main" {
     }
     paths = {
       "/" = {
+        options = {
+          x-amazon-apigateway-integration = {
+            type = "mock"
+            requestTemplates = {
+              "application/json" = "{ \"statusCode\": 200 }"
+            }
+            responses = {
+              default = {
+                statusCode = "200"
+                responseParameters = {
+                  "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                  "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+                  "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+                }
+                responseTemplates = {
+                  "application/json" = ""
+                }
+              }
+            }
+          }
+          responses = {
+            "200" = {
+              description = "Default response for CORS method"
+              headers = {
+                "Access-Control-Allow-Headers" = {
+                  type = "string"
+                }
+                "Access-Control-Allow-Methods" = {
+                  type = "string"
+                }
+                "Access-Control-Allow-Origin" = {
+                  type = "string"
+                }
+              }
+            }
+          }
+        }
         post = {
           x-amazon-apigateway-integration = {
             httpMethod           = "POST"
             payloadFormatVersion = "1.0"
-            type                 = "HTTP_PROXY"
+            type                 = "AWS_PROXY"
             uri                  = aws_lambda_function.line_main.invoke_arn
             credentials          = aws_iam_role.api_gateway_line_main.arn
+          }
+          responses = {
+            "200" = {
+              description = "Default response for POST method"
+              headers = {
+                "Access-Control-Allow-Headers" = {
+                  type = "string"
+                }
+                "Access-Control-Allow-Methods" = {
+                  type = "string"
+                }
+                "Access-Control-Allow-Origin" = {
+                  type = "string"
+                }
+              }
+            }
+            "default" = {
+              description = "Default response for POST method"
+              headers = {
+                "Access-Control-Allow-Headers" = {
+                  type = "string"
+                }
+                "Access-Control-Allow-Methods" = {
+                  type = "string"
+                }
+                "Access-Control-Allow-Origin" = {
+                  type = "string"
+                }
+              }
+            }
           }
         }
       }
@@ -27,9 +94,22 @@ resource "aws_api_gateway_rest_api" "line_main" {
   }
 }
 
+resource "aws_api_gateway_gateway_response" "line_main_default_4xx" {
+  rest_api_id   = aws_api_gateway_rest_api.line_main.id
+  status_code   = "400"
+  response_type = "DEFAULT_4XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin" = "'*'"
+  }
+}
+
 resource "aws_api_gateway_deployment" "line_main" {
   rest_api_id = aws_api_gateway_rest_api.line_main.id
-  depends_on  = [aws_api_gateway_method.line_main]
+  depends_on = [
+    aws_api_gateway_rest_api.line_main,
+    aws_api_gateway_gateway_response.line_main_default_4xx,
+  ]
   triggers = {
     redeployment = sha1(jsonencode(aws_api_gateway_rest_api.line_main))
   }

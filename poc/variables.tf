@@ -3,7 +3,7 @@ variable "env" {
 }
 
 variable "project" {
-  default = "line_nandemo"
+  default = "line-nandemo"
 }
 
 variable "region" {

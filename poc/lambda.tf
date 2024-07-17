@@ -1,43 +1,63 @@
-# レイヤー
-data "archive_file" "python_requests_layer" {
-  type        = "zip"
-  source_dir  = "${path.cwd}/files/lambda/layers/python_requests"
-  output_path = "${path.module}/artifacts/python_requests_layer.zip"
+locals {
+  python_packages_requirements_path = "${path.module}/files/lambda/layers/python_packages/requirements.txt"
+  python_packages_output_path       = "${path.module}/outputs/lambda/layers/outputs/python_packages/output.zip"
+  python_packages_venv_dir          = "${path.module}/outputs/lambda/venv"
+  python_packages_source_dir        = "${path.module}/outputs/lambda/layers/sources/python_packages"
 }
 
-resource "aws_lambda_layer_version" "python_requests" {
-  layer_name          = "${var.env}_${var.project}_python_requests"
-  vesion              = 1
+
+# レイヤー
+resource "null_resource" "prepare_python_packages" {
+  triggers = {
+    "requirements_diff" = filebase64(local.python_packages_requirements_path)
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOF
+      rm -rf ${local.python_packages_source_dir} &&
+      python3 -m venv ${local.python_packages_venv_dir} &&
+      ${local.python_packages_venv_dir}/bin/pip3 install -r ${local.python_packages_requirements_path} -t ${local.python_packages_source_dir}/python --no-cache-dir
+    EOF
+
+    on_failure = fail
+  }
+}
+
+data "archive_file" "python_packages_layer" {
+  type        = "zip"
+  source_dir  = local.python_packages_source_dir
+  output_path = local.python_packages_output_path
+
+  depends_on = [
+    null_resource.prepare_python_packages
+  ]
+}
+
+resource "aws_lambda_layer_version" "python_packages" {
+  layer_name          = "${var.env}-${var.project}-python-packages"
   s3_bucket           = aws_s3_bucket.lambda_layers.id
-  s3_key              = aws_s3_object.python_requests_layer.key
+  s3_key              = aws_s3_object.python_packages_layer.key
+  source_code_hash    = data.archive_file.python_packages_layer.output_md5
   compatible_runtimes = ["python3.11"]
 }
 
-resource "aws_lambda_layer_version_permission" "python_requests" {
-  statement_id   = "AllowExecutionFromLambda"
-  layer_name     = aws_lambda_layer_version.python_requests.arn
-  version_number = aws_lambda_layer_version.python_requests.version
-  principal      = "lambda.amazonaws.com"
-  action         = "lambda:GetLayerVersion"
-}
-
-resource "aws_s3_object" "python_requests_layer" {
+resource "aws_s3_object" "python_packages_layer" {
   bucket = aws_s3_bucket.lambda_layers.id
-  key    = "python_requests_layer.zip"
-  source = data.archive_file.python_requests_layer.output_path
-  etag   = data.archive_file.python_requests_layer.output_md5
+  key    = "python_packages_layer.zip"
+  source = data.archive_file.python_packages_layer.output_path
+  etag   = data.archive_file.python_packages_layer.output_md5
 }
 
 
 # LINEのメイン関数
 data "archive_file" "line_main" {
   type        = "zip"
-  source_dir  = "${path.cwd}/files/lambda/functions/line_main"
-  output_path = "${path.module}/artifacts/line_main.zip"
+  source_dir  = "${path.module}/files/lambda/functions/line_main"
+  output_path = "${path.module}/outputs/lambda/functions/line_main.zip"
 }
 
 resource "aws_lambda_function" "line_main" {
-  function_name    = "${var.env}_${var.project}_line_main"
+  function_name    = "${var.env}-${var.project}-line-main"
   role             = aws_iam_role.lambda_line_main.arn
   handler          = "lambda_function.lambda_handler"
   s3_bucket        = aws_s3_bucket.lambda_functions.id
@@ -47,12 +67,18 @@ resource "aws_lambda_function" "line_main" {
   timeout          = 15
   memory_size      = 128
   layers = [
-    aws_lambda_layer_version.python_requests.arn
+    aws_lambda_layer_version.python_packages.arn
   ]
   environment {
     variables = {
-      CHANNEL_ACCESS_TOKEN = "PleaseChange!"
+      CHANNEL_ACCESS_TOKEN   = "PleaseChange!"
+      DYNAMO_REMINDERS_TABLE = aws_dynamodb_table.reminders.name
     }
+  }
+  lifecycle {
+    ignore_changes = [
+      environment
+    ]
   }
 }
 
@@ -75,12 +101,12 @@ resource "aws_s3_object" "line_main" {
 # LINEリマインド関数
 data "archive_file" "line_remind" {
   type        = "zip"
-  source_dir  = "${path.cwd}/files/lambda/functions/line_remind"
-  output_path = "${path.module}/artifacts/line_remind.zip"
+  source_dir  = "${path.module}/files/lambda/functions/line_remind"
+  output_path = "${path.module}/outputs/lambda/functions/line_remind.zip"
 }
 
 resource "aws_lambda_function" "line_remind" {
-  function_name    = "${var.env}_${var.project}_line_remind"
+  function_name    = "${var.env}-${var.project}-line-remind"
   role             = aws_iam_role.lambda_line_remind.arn
   handler          = "lambda_function.lambda_handler"
   s3_bucket        = aws_s3_bucket.lambda_functions.id
@@ -90,12 +116,18 @@ resource "aws_lambda_function" "line_remind" {
   timeout          = 15
   memory_size      = 128
   layers = [
-    aws_lambda_layer_version.python_requests.arn
+    aws_lambda_layer_version.python_packages.arn
   ]
   environment {
     variables = {
       CHANNEL_ACCESS_TOKEN = "PleaseChange!"
+      DYNAMO_REMINDERS_TABLE = aws_dynamodb_table.reminders.name
     }
+  }
+  lifecycle {
+    ignore_changes = [
+      environment
+    ]
   }
 }
 
