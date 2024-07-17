@@ -1,6 +1,8 @@
 import json
 import os
 import requests
+
+from investment_url import investment_url
 from remind import remind
 
 def lambda_handler(event, context):
@@ -12,6 +14,10 @@ def lambda_handler(event, context):
             "name": ["リマインド", "りま", "リマ"],
             "function": remind
         },
+        {
+            "name": ["投資", "とうし", "とーし"],
+            "function": investment_url
+        }
     ]
     
     # イベント情報の取得
