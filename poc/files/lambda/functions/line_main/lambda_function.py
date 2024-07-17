@@ -17,9 +17,10 @@ def lambda_handler(event, context):
     ]
     
     # イベント情報の取得
-    message = event['events'][0]['message']['text']
-    reply_token = event['events'][0]['replyToken']
-    user_id = event['events'][0]['source']['userId']
+    body = json.loads(event['body'])
+    message = body['events'][0]['message']['text']
+    reply_token = body['events'][0]['replyToken']
+    user_id = body['events'][0]['source']['userId']
     
     # メッセージの1行目を取得
     mode = message.split("\n")[0]
@@ -84,7 +85,8 @@ def remind(message, user_id):
     
     # リマインド登録
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('reminders')
+    table_name = os.environ['DYNAMO_REMINDERS_TABLE']
+    table = dynamodb.Table(table_name)
     remider_id = str(uuid.uuid4())
     table.put_item(Item={
         'id': remider_id,

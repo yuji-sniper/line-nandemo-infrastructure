@@ -6,15 +6,17 @@ from datetime import datetime, timedelta
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('reminders')
+    table_name = os.environ['DYNAMO_REMINDERS_TABLE']
+    table = dynamodb.Table(table_name)
     
     # 現在日時を%m%d%H%M形式で取得
     now = datetime.now() + timedelta(hours=9)
     now_str = now.strftime('%m%d%H%M')
     
     # DynamoDBから現在日時のリマインダーを取得
-    data = table.scan(
-        FilterExpression='remind_at = :now',
+    data = table.query(
+        IndexName='remind_at_index',
+        KeyConditionExpression='remind_at = :now',
         ExpressionAttributeValues={':now': now_str}
     )
     reminders = data['Items']
