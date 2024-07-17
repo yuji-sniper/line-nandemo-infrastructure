@@ -2,7 +2,7 @@
 resource "aws_cloudwatch_event_rule" "every_ten_minutes" {
   name                = "${var.env}-${var.project}-every-ten-minutes"
   schedule_expression = "cron(0/10 * * * ? *)"
-  state               = "DISABLED"
+  state               = "ENABLED"
 }
 
 # LINEリマインドLambda関数を10分ごとに実行する

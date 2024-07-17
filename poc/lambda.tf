@@ -14,9 +14,14 @@ resource "null_resource" "prepare_python_packages" {
 
   provisioner "local-exec" {
     command = <<-EOF
-      rm -rf ${local.python_packages_source_dir} &&
-      python3 -m venv ${local.python_packages_venv_dir} &&
-      ${local.python_packages_venv_dir}/bin/pip3 install -r ${local.python_packages_requirements_path} -t ${local.python_packages_source_dir}/python --no-cache-dir
+      rm -rf ${local.python_packages_source_dir}/python &&
+      mkdir -p ${local.python_packages_source_dir}/python &&
+      docker pull python:3.11-slim &&
+      docker run --rm -v $(pwd)/${local.python_packages_requirements_path}:/app/requirements.txt \
+      -v $(pwd)/${local.python_packages_source_dir}/python:/app/python \
+      python:3.11-slim /bin/sh -c "
+        pip install -r /app/requirements.txt -t /app/python
+      "
     EOF
 
     on_failure = fail

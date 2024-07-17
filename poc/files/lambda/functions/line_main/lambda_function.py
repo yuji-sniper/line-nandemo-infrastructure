@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     res_message = "なんもできんかっただ.."
     modes = [
         {
-            "name": ["リマインド", "りま"],
+            "name": ["リマインド", "りま", "リマ"],
             "function": remind
         },
     ]
@@ -56,15 +56,15 @@ def remind(message, user_id):
     
     # taskが空文字かどうかチェック
     if task == "":
-        return "タスク名を入力するだ!"
+        return "タスク名を指定するだ!"
     
     # time_strが数字で4桁または8桁かどうかチェック（4桁: 時間のみ, 8桁: 月日時分）
     if (not time_str.isdigit()) or (len(time_str) not in [4, 8]):
-        return "リマインド日時は4桁または8桁の数字で入力するだ!"
+        return "リマインド日時は4桁または8桁の数字で指定するだ!"
     
     # time_strの末尾が0かどうかチェック
     if time_str[-1] != "0":
-        return "10分単位で入力するだ!"
+        return "リマインド日時は10分単位で指定するだ!"
     
     # 存在する日付かどうかチェック
     try:
@@ -73,7 +73,7 @@ def remind(message, user_id):
         else:
             time = datetime.strptime(time_str, '%H%M')
     except ValueError:
-        return "存在する日付を入力するだ!"
+        return "リマインド日時は存在する日付を指定するだ!"
     
     # time_strが4桁(時間のみ)の場合、次に来る該当日時を計算して8桁に変換
     if len(time_str) == 4:
