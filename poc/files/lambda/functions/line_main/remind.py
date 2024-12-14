@@ -9,22 +9,22 @@ def remind(message, user_id):
     
     # 行数が正しいかチェック
     if len(parts) < 3:
-        return "なんか形式間違っとるだ!"
+        return "形式間違ってるよ!"
     
     task = parts[1].strip()
     time_str = parts[2].strip()
     
     # taskが空文字かどうかチェック
     if task == "":
-        return "タスク名を指定するだ!"
+        return "タスク名を指定してね!"
     
     # time_strが数字で4桁または8桁かどうかチェック（4桁: 時間のみ, 8桁: 月日時分）
     if (not time_str.isdigit()) or (len(time_str) not in [4, 8]):
-        return "リマインド日時は4桁または8桁の数字で指定するだ!"
+        return "リマインド日時は4桁または8桁の数字で指定してね!"
     
     # time_strの末尾が0かどうかチェック
     if time_str[-1] != "0":
-        return "リマインド日時は10分単位で指定するだ!"
+        return "リマインド日時は10分単位で指定してね!"
     
     # 存在する日付かどうかチェック
     try:
@@ -33,7 +33,7 @@ def remind(message, user_id):
         else:
             time = datetime.strptime(time_str, '%H%M')
     except ValueError:
-        return "リマインド日時は存在する日付を指定するだ!"
+        return "リマインド日時は存在する日付を指定してね!"
     
     # time_strが4桁(時間のみ)の場合、次に来る該当日時を計算して8桁に変換
     if len(time_str) == 4:
@@ -58,4 +58,4 @@ def remind(message, user_id):
     # timeを「月/日 時:分」形式に変換
     time = time.strftime('%m/%d %H:%M')
     
-    return f"「{task}」を\n{time}\nにリマインドするだ!"
+    return f"「{task}」を\n{time}\nにリマインドするよ!"

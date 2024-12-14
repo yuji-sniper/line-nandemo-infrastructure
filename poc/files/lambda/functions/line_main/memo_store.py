@@ -13,24 +13,24 @@ def memo_store(message, user_id):
     
     # 行数が正しいかチェック
     if len(parts) < 3:
-        return "なんか形式間違っとるだ!"
+        return "形式間違ってるよ!"
     
     title = parts[1].strip()
     content = "\n".join(parts[2:])
     
     # titleが空文字かどうかチェック
     if title == "":
-        return "タイトルを指定するだ!"
+        return "タイトルを指定してね!"
     # titleが20文字以内かどうかチェック
     if len(title) > 20:
-        return "タイトルは20文字以内で指定するだ!"
+        return "タイトルは20文字以内で指定してね!"
     
     # contentが空文字かどうかチェック
     if content == "":
-        return "内容を指定するだ!"
+        return "内容を指定してね!"
     # contentが200文字以内かどうかチェック（改行コードは除く）
     if len(content.replace("\n", "")) > 200:
-        return "内容は200文字以内で指定するだ!"
+        return "内容は200文字以内で指定してね!"
     
     # すでに同じタイトルのメモがあればそれを更新
     response = table.query(
@@ -51,7 +51,7 @@ def memo_store(message, user_id):
                 ':c': content
             }
         )
-        return f"「{title}」のメモを更新しただ!"
+        return f"「{title}」のメモを更新したよ!"
     
     # メモ登録
     memo_id = str(uuid.uuid4())
@@ -64,4 +64,4 @@ def memo_store(message, user_id):
         'created_at': created_at
     })
     
-    return f"「{title}」をメモに追加しただ!"
+    return f"「{title}」をメモに追加したよ!"

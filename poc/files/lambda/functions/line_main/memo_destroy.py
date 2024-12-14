@@ -8,7 +8,7 @@ def memo_destroy(message, user_id):
     
     # titleが空文字かどうかチェック
     if title == "":
-        return "タイトルを指定するだ!"
+        return "タイトルを指定してね!"
     
     # メモ取得
     dynamodb = boto3.resource('dynamodb')
@@ -23,7 +23,7 @@ def memo_destroy(message, user_id):
     items = response['Items']
 
     if len(items) == 0:
-        return "メモが見つからんかっただ.."
+        return "メモが見つからなかったよ.."
     
     memo = items[0]
     table.delete_item(
@@ -31,4 +31,4 @@ def memo_destroy(message, user_id):
             'id': memo['id']
         }
     )
-    return f"「{title}」をメモから削除しただ!"
+    return f"「{title}」をメモから削除したよ!"

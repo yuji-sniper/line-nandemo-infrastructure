@@ -8,7 +8,7 @@ def memo_show(message, user_id):
     
     # titleが空文字かどうかチェック
     if title == "":
-        return "タイトルを指定するだ!"
+        return "タイトルを指定してね!"
     
     # メモ取得
     dynamodb = boto3.resource('dynamodb')
@@ -23,7 +23,7 @@ def memo_show(message, user_id):
     items = response['Items']
 
     if len(items) == 0:
-        return "メモが見つからんかっただ.."
+        return "メモが見つからなかったよ.."
     
     memo = items[0]
     return memo['content']

@@ -11,7 +11,7 @@ from remind import remind
 def lambda_handler(event, context):
     channel_access_token = os.environ['CHANNEL_ACCESS_TOKEN']
     reply_api_endpoint = "https://api.line.me/v2/bot/message/reply"
-    res_message = "なんもできんかっただ.."
+    res_message = "なにもできなかったよ.."
     modes = [
         # リマインド機能
         {

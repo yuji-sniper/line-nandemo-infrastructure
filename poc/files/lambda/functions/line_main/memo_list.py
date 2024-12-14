@@ -15,6 +15,6 @@ def memo_list(message, user_id):
     items = response['Items']
 
     if len(items) == 0:
-        return "メモが見つからんかっただ.."
+        return "メモが見つからなかったよ.."
 
     return "\n".join(f"・{memo['title']}" for memo in items)
