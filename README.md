@@ -41,7 +41,7 @@ PythonのLambdaレイヤーにライブラリを追加する場合、ローカ�
   - 複数人が携わる場合に環境差異がネック
 
 - 工夫<br>
-本Terraformリポジトリrequirements.txtを配置。<br>
+本Terraformリポジトリにrequirements.txtを配置。<br>
 `terraform apply`時に以下が実行されるようにした。<br>
   - external data resourceでprepare_python_packages.shスクリプトを呼び出す。<br>
   - スクリプト内で、指定バージョンのPythonのDockerイメージをビルドし、requirements.txt記載の依存パッケージをインストールし、そのパスをJSONで返却。
