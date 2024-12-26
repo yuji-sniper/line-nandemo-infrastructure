@@ -46,7 +46,7 @@ PythonのLambdaレイヤーにライブラリを追加する場合、ローカ�
   - external data resourceでprepare_python_packages.shスクリプトを呼び出す。<br>
   - スクリプト内で、指定バージョンのPythonのDockerイメージをビルドし、requirements.txt記載の依存パッケージをインストールし、そのパスをJSONで返却。
   - archive_fileでそのパスをsource_dirとしてzipファイルを作成。
-  - zipファイルをS3にアップロードし、Lambda layerとして登録する。
+  - zipファイルをS3にアップロードし、Lambda Layerとして登録する。
 
 これにより、requirements.txtを更新してapplyを叩くのみでLambda Layerの更新が可能に。<br>
 ローカル環境差異の問題も解決。
